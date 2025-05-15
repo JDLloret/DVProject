@@ -1,0 +1,81 @@
+---
+title: "Home Assignment: Exploratory analysis and visualization"
+output: html_document
+date: "2025-05-15"
+author: "Joan Lloret and Martí Díez"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library(ggplot2)
+library(ggfortify)
+library(factoextra)
+library(stats)
+library(Rtsne)
+library(dplyr)
+library(tidyr)
+library(patchwork)
+library(gridExtra)
+```
+
+
+```{r data}
+rep1 <- read.csv("./data/rep1.csv")
+rep2 <- read.csv("./data/rep2.csv")
+rep3 <- read.csv("./data/rep3.csv")
+rep4 <- read.csv("./data/rep4.csv")
+```
+
+```{r}
+rows <- nrow(rep1)
+columns <- ncol(rep1)
+cat("The data set rep1 has", rows, "rows and", columns, "columns.\n")
+
+rows <- nrow(rep2)
+columns <- ncol(rep2)
+cat("The data set rep2 has", rows, "rows and", columns, "columns.\n")
+
+rows <- nrow(rep3)
+columns <- ncol(rep3)
+cat("The data set rep3 has", rows, "rows and", columns, "columns.\n")
+
+rows <- nrow(rep4)
+columns <- ncol(rep4)
+cat("The data set rep4 has", rows, "rows and", columns, "columns.\n")
+
+
+rownames(rep1) <- rep1$X
+rep1$X <- NULL
+
+rownames(rep2) <- rep2$X
+rep2$X <- NULL
+
+rownames(rep3) <- rep3$X
+rep3$X <- NULL
+
+rownames(rep4) <- rep4$X
+rep4$X <- NULL
+
+
+
+rep1 <- t(rep1)
+rep2 <- t(rep2)
+rep3 <- t(rep3)
+rep4 <- t(rep4)
+
+```
+
+```{r}
+replicate <- rep(c("1", "2", "3", "4"), each = nrow(rep1))
+
+A_B_vector <- rep(c("A", "B"), each = nrow(rep1) / 2)
+
+metadata <- data.frame(replicate, A_B_vector)
+
+
+data <- rbind(rep1, rep2, rep3, rep4)
+```
+
