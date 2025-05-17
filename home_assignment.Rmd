@@ -138,18 +138,211 @@ pca1_unscaled + pca2_unscaled + plot_annotation("Unscaled plots")
 ```
 
 
+# Plot full unscaled PCA with ggplot
+
+
+```{r}
+ggplot(pca_unscaled$x,
+       aes(x = PC1,
+           y = PC2, 
+           color = metadata$replicate,
+           shape = metadata$A_B_vector))+
+  geom_point()+
+  labs(title = "Unscaled PCA")+
+  scale_shape_manual(values = c(16, 1))+
+  guides(color = guide_legend(title = "Replicates"),
+         shape = guide_legend(title = "A/B Experiment"))+
+  theme_light()
+```
+
+
+# Scaled PCA plot
+
+
+```{r}
+pca1_scaled <- fviz_pca_ind(pca_scaled,
+                              geom.ind = "point",
+                              habillage = metadata$A_B_vector,
+                              addEllipses = TRUE,
+                              title = "A/B experiment")
+
+pca2_scaled <- fviz_pca_ind(pca_scaled,
+                              geom.ind = "point",
+                              habillage = metadata$replicate,
+                              addEllipses = TRUE,
+                              title = "Replicates")
+
+
+pca1_scaled + pca2_scaled + plot_annotation("Scaled plots")
+```
 
 
 
+# Plot full scaled PCA plot with ggplot
 
 
+```{r}
+ggplot(pca_scaled$x,
+       aes(x = PC1,
+           y = PC2, 
+           color = metadata$replicate,
+           shape = metadata$A_B_vector))+
+  geom_point()+
+  labs(title = "Scaled PCA")+
+  scale_shape_manual(values = c(16, 1))+
+  guides(color = guide_legend(title = "Replicates"),
+         shape = guide_legend(title = "A/B Experiment"))+
+  theme_light()
+```
 
 
+# Normalized PCA plot
+
+```{r}
+pca1_normalized <- fviz_pca_ind(pca_normalized,
+                              geom.ind = "point",
+                              habillage = metadata$A_B_vector,
+                              addEllipses = TRUE,
+                              title = "A/B experiment")
+
+pca2_normalized <- fviz_pca_ind(pca_normalized,
+                              geom.ind = "point",
+                              habillage = metadata$replicate,
+                              addEllipses = TRUE,
+                              title = "Replicates")
 
 
+pca1_normalized + pca2_normalized + plot_annotation("normalized plots")
+```
+# Plot full normalized PCA with ggplot
+```{r}
+ggplot(pca_normalized$x,
+       aes(x = PC1,
+           y = PC2, 
+           color = metadata$replicate,
+           shape = metadata$A_B_vector))+
+  geom_point()+
+  labs(title = "Normalized PCA")+
+  scale_shape_manual(values = c(16, 1))+
+  guides(color = guide_legend(title = "Replicates"),
+         shape = guide_legend(title = "A/B Experiment"))+
+  theme_light()
+```
 
 
+# Outliers
+
+```{r}
+
+# Find outliers
+point <- data.frame(pca_normalized$x)
+
+absolute_point <- abs(point)
+
+max_value <- max(absolute_point, na.rm = TRUE)
+
+max_pos <- which(absolute_point == max_value, arr.ind = TRUE)
+
+rowname <- rownames(point)[max_pos[1]]
+colname <- colnames(point)[max_pos[2]]
 
 
+# Remove outliers
+data <- data[-max_pos[1],]
+metadata <- metadata[-max_pos[1],]
 
+
+# Normalize again
+set.seed(123)
+sum_data <- rowSums(data)
+normalized_data <- sweep(data, 1, sum_data, "/")
+
+pca_normalized <- prcomp(normalized_data, scale = TRUE)
+```
+
+# Plot full normalized PCA without outliers with ggplot
+```{r}
+ggplot(pca_normalized$x,
+       aes(x = PC1,
+           y = PC2, 
+           color = metadata$replicate,
+           shape = metadata$A_B_vector))+
+  geom_point()+
+  labs(title = "Normalized PCA")+
+  scale_shape_manual(values = c(16, 1))+
+  guides(color = guide_legend(title = "Replicates"),
+         shape = guide_legend(title = "A/B Experiment"))+
+  theme_light()
+```
+# tSNE representation
+```{r}
+maximum_perplexity <- (nrow(normalized_data) - 1) / 3 
+
+# Unscaled tSNE
+unscaled_tsne <- Rtsne(data, dims = 2, perplexity = maximum_perplexity/2) 
+
+# If we add verbose = TRUE it will tell us the error value for each 50 iterations until the maximum iterations default value, but it is unnecessary text. The tSNE is performed well for each case.
+
+unscaled_tsne_data <- data.frame(unscaled_tsne$Y, 
+                                 replicate = metadata$replicate, A_B_vector = metadata$A_B_vector)
+
+colnames(unscaled_tsne_data) <- c("Dim1", "Dim2", "Replicate", "Type")
+
+
+# Scaled tSNE
+scaled_data <- scale(data)
+
+scaled_tsne <- Rtsne(scaled_data, dims = 2, perplexity = maximum_perplexity/2)
+
+scaled_tsne_data <- data.frame(scaled_tsne$Y, replicate = metadata$replicate, A_B_vector = metadata$A_B_vector)
+colnames(scaled_tsne_data) <- c("Dim1", "Dim2", "Replicate", "Type")
+
+
+#Normalized
+sum_data <- rowSums(data)
+normalized_data <- sweep(data, 1, sum_data, "/")
+
+normalized_tsne <- Rtsne(normalized_data, dims = 2, 
+                         perplexity = maximum_perplexity/2)
+
+normalized_tsne_data <- data.frame(normalized_tsne$Y, 
+                                   replicate = metadata$replicate, A_B_vector = metadata$A_B_vector)
+
+colnames(normalized_tsne_data) <- c("Dim1", "Dim2", "Replicate", "Type")
+```
+
+# tSNE plots
+# Unscaled tSNE plot
+
+```{r}
+ggplot(unscaled_tsne_data, aes(x = Dim1, y = Dim2, color = Replicate, shape = Type))+
+  geom_point(size = 2)+
+  labs(title = "Unscaled tSNE plot")+
+    scale_shape_manual(values = c(16, 1)) +
+  guides(color = guide_legend(title = "Replicate"),
+         shape = guide_legend(title = "Type")) +
+  theme_light()
+```
+# Scaled tSNE plot
+```{r}
+ggplot(scaled_tsne_data, aes(x = Dim1, y = Dim2, color = Replicate, shape = Type))+
+  geom_point(size = 2)+
+  labs(title = "Scaled tSNE plot")+
+    scale_shape_manual(values = c(16, 1)) +
+  guides(color = guide_legend(title = "Replicate"),
+         shape = guide_legend(title = "Type")) +
+  theme_light()
+```
+
+# Normalized tSNE plot
+
+```{r}
+ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, color = Replicate, shape = Type))+
+  geom_point(size = 2)+
+  labs(title = "Normalized tSNE plot")+
+    scale_shape_manual(values = c(16, 1)) +
+  guides(color = guide_legend(title = "Replicate"),
+         shape = guide_legend(title = "Type")) +
+  theme_light()
+```
 
