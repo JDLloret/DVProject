@@ -212,7 +212,7 @@ pca2_normalized <- fviz_pca_ind(pca_normalized,
                               title = "Replicates")
 
 
-pca1_normalized + pca2_normalized + plot_annotation("normalized plots")
+pca1_normalized + pca2_normalized + plot_annotation("Normalized plots")
 ```
 # Plot full normalized PCA with ggplot
 ```{r}
@@ -345,4 +345,100 @@ ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, color = Replicate, shape = 
          shape = guide_legend(title = "Type")) +
   theme_light()
 ```
+# tSNE parameters
 
+# Reproducibility
+
+```{r reproducibility}
+set.seed(123)
+
+plot_reproducibility <- function(normalized_data, metadata){
+  
+  set.seed(123)
+  maximum_perplexity <- (nrow(normalized_data) - 1) / 3
+  data <- Rtsne(normalized_data, perplexity = maximum_perplexity / 2)
+  
+  tsne_plots <- ggplot(data$Y, aes(x=data$Y[,1], y=data$Y[,2], color=metadata$replicate, shape = metadata$A_B_vector))+
+    geom_point()+
+    labs(x="tSNE 1", y="tSNE 2", color="Origin", shape = "Experiment Label")
+  
+  return(tsne_plots)
+}
+
+
+reproducibility_values <- list()
+
+for (i in 1:4){
+  
+  rep_plot <- plot_reproducibility(normalized_data, metadata)+ggtitle(paste0(i, " tSNE repetition"))
+  reproducibility_values[[i]] <- rep_plot
+}
+
+grid.arrange(grobs = reproducibility_values, ncol=2, top="tSNE Repetitions")
+
+```
+
+# Perplexity
+```{r perplexity}
+
+
+PerplexityPlotter <- function(normalized_data, metadata, pr){
+  
+  set.seed(123)
+  model <- Rtsne(normalized_data, perplexity = pr)
+  tsne_plots <- ggplot(model$Y, aes(model$Y[,1],
+                       model$Y[,2],
+                       color = metadata$replicate,
+                       shape = metadata$A_B_vector))+
+    geom_point()+
+    labs(x = "tSNE 1", y = "tSNE 2", color = "Replicate", shape = "Type", title=paste0("tSNE plot for perplexity=", round(pr, 2)))
+  return(tsne_plots)
+}
+
+maximum_perplexity <- (nrow(normalized_data) - 1) / 3 
+
+test_perplexity_values <- c(1, maximum_perplexity/3, (maximum_perplexity/3) * 2, maximum_perplexity)
+
+perplexity_plots <- list()
+
+for (i in seq_along(test_perplexity_values)){
+  per_val <- test_perplexity_values[i]
+  per_plot <- PerplexityPlotter(normalized_data, metadata, per_val)
+  perplexity_plots[[i]] <- per_plot
+}
+
+grid.arrange(grobs=perplexity_plots, ncol=2, top="tSNE Perplexity")
+
+```
+# Iterations
+
+```{r iterations}
+
+plot_iterations<-function(normalized_data, metadata, num_iterations){
+  set.seed(123)
+  
+  maximum_perplexity <- (nrow(normalized_data)-1)/3
+  data <- Rtsne(normalized_data, perplexity = maximum_perplexity / 2, max_iter = num_iterations)
+
+  tsne_plots <- ggplot(data$Y, aes(x=data$Y[,1], y=data$Y[,2], 
+                          color=metadata$replicate, shape = metadata$A_B_vector))+
+    geom_point()+
+    labs(x="tSNE 1", y="tSNE 2", color="Replicate", shape = "Type", 
+         title=paste0(num_iterations, " iterations tSNE plot"))
+  return(tsne_plots)
+}
+
+iterations<-c(2, 100, 2000, 10000)
+
+iterations_plots <- list()
+
+for (i in seq_along(iterations)){
+  iter_num <- iterations[i]
+  iter_plot <- plot_iterations(normalized_data, metadata, iter_num)
+  iterations_plots[[i]] <- iter_plot
+}
+
+grid.arrange(grobs = iterations_plots, ncol = 2, top="tSNE Iterations")
+```
+
+# Final interpretation
