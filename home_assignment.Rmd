@@ -136,7 +136,7 @@ pca2_unscaled <- fviz_pca_ind(pca_unscaled,
 
 pca1_unscaled + pca2_unscaled + plot_annotation("Unscaled plots")
 ```
-
+Here we can see first the A/B experiment differences, where they have opposite growths in relation to Dim2. Along to all groups remaining in separate clusters. Not giving any relevant information more that we know they are different
 
 # Plot full unscaled PCA with ggplot
 
@@ -154,7 +154,7 @@ ggplot(pca_unscaled$x,
          shape = guide_legend(title = "A/B Experiment"))+
   theme_light()
 ```
-
+This plot reinforces the previous statement, showing how the samples group by replicates and experiment, but nothing more relevant
 
 # Scaled PCA plot
 
@@ -175,8 +175,7 @@ pca2_scaled <- fviz_pca_ind(pca_scaled,
 
 pca1_scaled + pca2_scaled + plot_annotation("Scaled plots")
 ```
-
-
+Once scaled we still remain in a similar situation but with a small change, the group 3 cluster has grown covering inside groups 1 and 2, but still with a low relevant information to extract. Therefore the scaling has adapted a bit to take into account big value discrepancies, but the data still needs to be adapted.
 
 # Plot full scaled PCA plot with ggplot
 
@@ -194,7 +193,7 @@ ggplot(pca_scaled$x,
          shape = guide_legend(title = "A/B Experiment"))+
   theme_light()
 ```
-
+Here we can see that it stays mostly the same as before
 
 # Normalized PCA plot
 
@@ -214,6 +213,8 @@ pca2_normalized <- fviz_pca_ind(pca_normalized,
 
 pca1_normalized + pca2_normalized + plot_annotation("Normalized plots")
 ```
+After normalizing we now see bigger changes, but they seem to be caused due to the group B and 3 outlier that makes the whole plot shift, therefore we will have to take these cases into account
+
 # Plot full normalized PCA with ggplot
 ```{r}
 ggplot(pca_normalized$x,
@@ -228,7 +229,7 @@ ggplot(pca_normalized$x,
          shape = guide_legend(title = "A/B Experiment"))+
   theme_light()
 ```
-
+Here though we see that the clusters are grouped in an entirelly new way, discriminating by type of experiment, but showing clusters of different replicas, but PC2 no longer explains the same-replicate clusters
 
 # Outliers
 
@@ -274,6 +275,8 @@ ggplot(pca_normalized$x,
          shape = guide_legend(title = "A/B Experiment"))+
   theme_light()
 ```
+Here it stays the same as before
+
 # tSNE representation
 ```{r}
 maximum_perplexity <- (nrow(normalized_data) - 1) / 3 
