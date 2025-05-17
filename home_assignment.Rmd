@@ -442,3 +442,50 @@ grid.arrange(grobs = iterations_plots, ncol = 2, top="tSNE Iterations")
 ```
 
 # Final interpretation
+
+# We'll use the normalized data with outliers removed since it is the one that represents our data most accurately
+
+# Final PCA
+```{r final_pca}
+final_pca1 <- ggplot(pca_normalized$x,
+                     aes(x = PC1, y = PC2, color = metadata$replicate, shape = metadata$A_B_vector))+
+  geom_point()+
+  scale_shape_manual(values = c(16,1))+
+  guides(color = guide_legend(title = "Replicate"),
+      shape = guide_legend(title = "Type"))+
+  theme_light()
+
+
+
+final_pca2 <- fviz_pca_ind(pca_normalized,              geom.ind = "point", 
+             habillage = metadata$A_B_vector,
+             addEllipses = TRUE) +
+  labs(x = "PC1", y = "PC2")+
+  theme_light()
+
+final_pca1 + final_pca2 + plot_annotation(title = "Final PCA representation with accurate data")
+
+```
+We observe that our data has been grouped into two clusters, which are classified by the type of experiment (not the replicate where they come from) and this means that the variance that is seen between PC1 and PC2 has to be explained by biological factors. Since the groups are clearly separated, we can confirm that the batch effect has been eliminated. 
+
+# Final tSNE representation
+
+
+```{r}
+set.seed(123)
+
+maximum_perplexity <- (nrow(normalized_data) - 1) / 3
+
+ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, color = metadata$replicate, shape = metadata$A_B_vector)) +
+  geom_point(size = 2) +
+  labs(title = "Final tSNE representation with accurate data", 
+       x = "Dim1", y = "Dim2", color = "Replicate", shape = "Type") +
+  theme_minimal()
+```
+The t-SNE plot shows how samples group based on how similar they are, and it helps support what we saw with the PCA. In our plot, the samples are grouped more by their experimental type (A/B) than what replicate they came from. This suggests that the differences in the data are due to real biological effects, not technical issues like batch effects. This supports the PCA representation since both PCA and tSNE are clustered the same way.
+
+
+
+# Final interpretation
+
+PCA and tSNE both help understand the main differences in our data. PCA showed clear clusters in the first two components, and tSNE showed a similar pattern in its two main dimensions. Looking back at the results, the fact that both methods show the same clear grouping gives us more confidence in what we're seeing. Since the clusters match the experiment type rather than the replicate where it comes from, we can say that the variation is likely caused by biology, not technical errors.
