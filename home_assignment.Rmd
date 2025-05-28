@@ -539,7 +539,17 @@ for (i in seq_along(iterations)){
   iterations_plots[[i]] <- iter_plot
 }
 
-grid.arrange(grobs = iterations_plots, ncol = 2, top="tSNE Iterations")
+iterations_legend <- get_legend(iterations_plots[[1]])
+
+no_legend_iterations <- lapply(iterations_plots, "+", theme(legend.position = "none"))
+
+grid.arrange(
+  arrangeGrob(grobs = no_legend_iterations, ncol = 2),
+  iterations_legend,
+  ncol=2,
+  widths = c(10, 1),
+  top="tSNE Iterations"
+)
 ```
 
 Since the number of iterations controls how long the algorithm refines the embedding, running fewer iterations can result in an underdeveloped structure, while more iterations allow the algorithm to better separate and position the points.
@@ -549,14 +559,181 @@ This can clearly be seen at iteration 2, since there is almost no visible cluste
 
 
 
-
-
 # UMAP Representation
 
+# UMAP plots
+```{r}
+plot_umap <- function(data, metadata){
+  umap_plots <- ggplot(data$layout, aes(x = data$layout[,1], y = data$layout[,2], shape = metadata$replicate, size = metadata$A_B_vector, color = metadata$time_stamp))+
+    geom_point()+
+    scale_shape_manual(values = c(1, 5, 10, 15))+
+    scale_size_manual( values = c(3, 5))+
+    scale_color_viridis_d(option = "magma")+
+    labs(x = "X", y = "Y", shape = "Replicate", size = "Type", color = "Time")+
+    theme_minimal()
+  
+  return(umap_plots)
+}
+```
+
+
+# Raw data UMAP plot
+```{r}
+umap_raw_plot <- umap(data)
+
+plot_umap(umap_raw_plot, metadata)+
+  labs(title = "UMAP Raw data plot")
+```
+
+# Normalized data UMAP plot
+```{r}
+umap_normalized_plot <- umap(normalized_data)
+
+plot_umap(umap_normalized_plot, metadata)+
+  labs(title = "UMAP Normalized data plot")
+```
+
+# Predict the UMAP
+```{r}
+umap_training <- metadata$replicate %in% c("1", "2", "3")
+
+umap_rep4_data <- normalized_data[umap_training, ]
+
+metadata_train <- metadata[umap_training, ]
+
+umap_train <- umap(umap_rep4_data)
+
+plot_umap(umap_train, metadata_train)+
+  labs(title = "UMAP data Replicates 1-3")
+```
 
 
 
+```{r}
+rep4_umap <- predict(umap_train, rep4)
 
+rep4_metadata <- metadata[!umap_training, ]
+
+rep4_data <- data.frame(Dim1 = rep4_umap[,1], Dim2 = rep4_umap[,2], Type = rep4_metadata$A_B_vector, Time = rep4_metadata$time_stamp)
+
+
+ggplot(rep4_data, aes(x = Dim1, y = Dim2, shape = Type, color = Time))+
+  geom_point()+
+  scale_shape_manual(values = c(1, 5, 10, 15))+
+  scale_color_viridis_d(option = "magma")+
+  labs(title = "Prediction for Replicate 4")+
+  theme_minimal()
+```
+# Parameter exploration: n_neighbors
+```{r warning=FALSE}
+neighbor_plotter <- function(data, metadata, num){
+  n_neigh_umap <- umap(data, n_neighbors = num)
+  umap_plot <- plot_umap(n_neigh_umap, metadata)
+  umap_plot <- umap_plot+
+    labs(title=paste0("Neighbors: ", num))
+  
+  return(umap_plot)
+}
+
+neighbor_plots <- list()
+
+neighbors <- seq(2, nrow(normalized_data), by = 10)
+
+for (i in seq_along(neighbors)){
+  num <- neighbors[i]
+  num_plot <- neighbor_plotter(normalized_data, metadata, num)
+  neighbor_plots[[i]] <- num_plot
+}
+
+neighbor_legend <- get_legend(neighbor_plots[[1]])
+
+no_legend_neighbor <- lapply(neighbor_plots, "+", theme(legend.position = "none"))
+
+grid.arrange(
+  arrangeGrob(grobs = no_legend_neighbor, ncol = 2),
+  neighbor_legend,
+  ncol = 2,
+  widths = c(10, 1),
+  top="UMAP Neighbors"
+)
+```
+
+
+# Parameter exploration: min_dist
+```{r warning=FALSE}
+
+min_dist_plotter <- function(data, metadata, dist_value){
+  
+  min_dist_umap <- umap(data, min_dist = dist_value)
+  umap_plot <- plot_umap(min_dist_umap, metadata)
+  umap_plot <- umap_plot+
+    labs(title=paste0("Minimum distance: ", dist_value))
+  
+  return(umap_plot)
+  
+}
+
+min_dist_list <- list()
+
+distances <- c(0.1, 0.3, 0.5, 0.7, 0.9)
+
+for (i in seq_along(distances)){
+  min <- distances[i]
+  min_dist_plot <- min_dist_plotter(normalized_data, metadata, min)
+  min_dist_list[[i]] <- min_dist_plot
+}
+
+min_dist_legend <- get_legend(min_dist_list[[1]])
+
+no_legend_min_dist <- lapply(min_dist_list, "+", theme(legend.position = "none"))
+
+grid.arrange(
+  arrangeGrob(grobs = no_legend_min_dist, ncol = 2),
+  min_dist_legend,
+  ncol = 2,
+  widths = c(10, 1),
+  top="UMAP Minimum Distance"
+)
+
+
+```
+
+
+
+# Parameter exploration: n_epochs
+```{r}
+epoch_plotter <- function(data, metadata, epoch){
+  epoch_umap <- umap(data, n_epochs = epoch)
+  umap_plot <- plot_umap(epoch_umap, metadata)
+  umap_plot <- umap_plot+
+    labs(title=paste0("Number of iterations: ", epoch))
+  
+  return(umap_plot)
+}
+
+
+epoch_list <- list()
+
+epoch_values <- c(100, 500, 1000, 2000)
+
+for (i in seq_along(epoch_values)){
+  num <- epoch_values[i]
+  epoch_plot <- epoch_plotter(normalized_data, metadata, num)
+  epoch_list[[i]] <- epoch_plot
+}
+
+epoch_legend <- get_legend(epoch_list[[1]])
+
+no_legend_epoch <- lapply(epoch_list, "+", theme(legend.position = "none"))
+
+grid.arrange(
+  arrangeGrob(grobs = no_legend_epoch, ncol = 2),
+  epoch_legend,
+  ncol=2,
+  widths = c(10, 1),
+  top="UMAP Number of iterations"
+)
+```
 
 
 
