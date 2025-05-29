@@ -137,9 +137,13 @@ pca2_unscaled <- fviz_pca_ind(pca_unscaled,
                               habillage = metadata$replicate,
                               addEllipses = TRUE,
                               title = "Replicates")
+pca3_unscaled <- fviz_pca_ind(pca_unscaled,
+                              geom.ind = "point",
+                              habillage = metadata$time_stamp,
+                              addEllipses = TRUE,
+                              title = "Time")
 
-
-pca1_unscaled + pca2_unscaled + plot_annotation("Unscaled plots")
+pca1_unscaled + pca2_unscaled + pca3_unscaled +plot_annotation("Unscaled plots")
 
 
 
@@ -186,8 +190,14 @@ pca2_scaled <- fviz_pca_ind(pca_scaled,
                               addEllipses = TRUE,
                               title = "Replicates")
 
+pca3_scaled <- fviz_pca_ind(pca_scaled,
+                              geom.ind = "point",
+                              habillage = metadata$time_stamp,
+                              addEllipses = TRUE,
+                              title = "Time")
 
-pca1_scaled + pca2_scaled + plot_annotation("Scaled plots")
+
+pca1_scaled + pca2_scaled+ pca3_scaled + plot_annotation("Scaled plots")
 ```
 
 Once scaled we still remain in a similar situation but with a small change, the group 3 cluster has grown covering inside groups 1 and 2, but still with a low relevant information to extract. Therefore the scaling has adapted a bit to take into account big value discrepancies, but the data still needs to be adapted.
@@ -230,8 +240,14 @@ pca2_normalized <- fviz_pca_ind(pca_normalized,
                               addEllipses = TRUE,
                               title = "Replicates")
 
+pca3_normalized <- fviz_pca_ind(pca_normalized,
+                              geom.ind = "point",
+                              habillage = metadata$time_stamp,
+                              addEllipses = TRUE,
+                              title = "Time")
 
-pca1_normalized + pca2_normalized + plot_annotation("Normalized plots")
+
+pca1_normalized + pca2_normalized+ pca3_normalized + plot_annotation("Normalized plots")
 ```
 
 After normalizing we now see bigger changes, but they seem to be caused due to the group B and 3 outlier that makes the whole plot shift, therefore we will have to take these cases into account
