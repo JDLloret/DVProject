@@ -169,9 +169,12 @@ scale_color_brewer(palette = "Set1")+
          shape = "Replicate", 
          color = "Time")+
   theme_minimal()
+
+
+
 ```
-### CANVIAR EXPLICACIÓ
-This plot reinforces the previous statement, showing how the samples group by replicates and experiment, but nothing more relevant except for the fact that each point represents a sample and it can be seen more clearly the clusters grouped by both replicate and type of experiment. 
+
+This plot reinforces the previous statement, showing how the samples group by replicates and experiment but the group times are separated. There is nothing more relevant except for the fact that each point represents a sample and it can be seen more clearly the clusters grouped by both replicate and type of experiment. The red circle is an exception that we will come back later on.
 
 
 # Scaled PCA plot
@@ -198,6 +201,7 @@ pca3_scaled <- fviz_pca_ind(pca_scaled,
 
 
 pca1_scaled + pca2_scaled+ pca3_scaled + plot_annotation("Scaled plots")
+
 ```
 
 Once scaled we still remain in a similar situation but with a small change, the group 3 cluster has grown covering inside groups 1 and 2, but still with a low relevant information to extract. Therefore the scaling has adapted a bit to take into account big value discrepancies, but the data still needs to be adapted.
@@ -221,6 +225,7 @@ ggplot(pca_scaled$x,
          shape = "Replicate", 
          color = "Time")+
   theme_minimal()
+
 ```
 ### CANVIAR EXPLICACIÓ
 Here we can see that it stays mostly the same as before. Using this type of data reduces the samples with high variance, and allows us to focus more on the differences in proportion. With scaling there isn't as much batch effect, or at least it is more subtle when looking for differences between samples. 
@@ -248,9 +253,10 @@ pca3_normalized <- fviz_pca_ind(pca_normalized,
 
 
 pca1_normalized + pca2_normalized+ pca3_normalized + plot_annotation("Normalized plots")
+
 ```
 
-After normalizing we now see bigger changes, but they seem to be caused due to the group B and 3 outlier that makes the whole plot shift, therefore we will have to take these cases into account
+After normalizing we now see bigger changes, but they seem to be caused due to the group B and 3 time 1 outlier that makes the whole plot shift, therefore we will have to address this outlier the data providers mentioned.
 
 
 # Plot full normalized PCA with ggplot
@@ -270,9 +276,11 @@ ggplot(pca_normalized$x,
          shape = "Replicate", 
          color = "Time")+
   theme_minimal()
+
+
 ```
 ### REVISAR EXPLICACIÓ
-Here we see that the clusters are grouped in an entirely new way, discriminating by type of experiment and showing clusters of different replicas, but PC2 no longer explains the same-replicate clusters. When normalizing the data by the rowsums it eliminates variability due to differences in the total gene expression found in the samples, and this is useful when focusing on expression patterns that are specific to certain conditions (independently of technical variations in a specific sample).
+Here we see how extremely this outlier conditions our data, leaving only the groups as a visible difference.
 
 # Outliers
 
@@ -323,9 +331,10 @@ ggplot(pca_normalized$x,
          shape = "Replicate", 
          color = "Time")+
   theme_minimal()
+
+
 ```
-### CANVIAR EXPLICACIÓ
-Here it stays the same as before because when we scale and normalize the data what we are doing is minimizing noise because of the absolute gene expression differences and focusing on relative patterns between samples. This analysis displays a better result of our data. 
+Now we can more clearly see how the data is distributed, the replicates remain in groups, time shows the most variance, and we can see how it behaves differently at each type behaves differently over time. This would explain the discrepancies in taste of the wines.
 
 
 # tSNE representation
@@ -379,10 +388,11 @@ ggplot(unscaled_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = Typ
          shape = "Replicate", 
          color = "Time")+
   theme_minimal()
+
+
 ```
 ### CANVIAR EXPLICACIÓ
-This plot shows that the samples cluster based on replicate and type. We can see that one sample stands out as an outlier, far away from the rest. Most of the other samples group together, but there isn’t a clear separation between experiment types (A or B). Some grouping by replicate is visible based on color, but overall, this plot doesn't give us much useful information beyond confirming that some samples are different. Since the data wasn’t scaled, genes with higher expression may dominate the result and hide smaller patterns.
-
+This plot shows that the samples cluster based on replicate and type, making time the discrepancy within groups. There isn’t a clear separation between experiment types (A or B), since those who share replicate are still fairly near.
 
 # Scaled tSNE plot
 
@@ -397,10 +407,11 @@ ggplot(scaled_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = Type,
          shape = "Replicate", 
          color = "Time")+
   theme_minimal()
+
 ```
 
 ### REVISAR EXPLICACIÓ
-In this plot the samples are now clearly grouped by replicate, shown by color. Each replicate forms its own tight cluster, and these clusters are well separated from each other. This suggests that the scaling helped reduce the effect of genes with very high expression, making differences between replicates easier to see. However, the experiment type doesn't seem to influence the grouping much here, meaning the replicate effect is stronger than the experiment effect with this data.
+In this plot the samples are now clearly grouped by replicate, with overlapping, and also the Type separation has diminished in comparasion to the unscaled plot.
 
 
 # Normalized tSNE plot
@@ -416,6 +427,7 @@ ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = T
          shape = "Replicate", 
          color = "Time")+
   theme_minimal()
+
 ```
 ### REVISAR EXPLICACIÓ
 In the normalized tSNE plot, the samples continue to cluster based on replicate, similar to the scaled version. Each replicate forms a distinct group, indicating that normalization has helped adjust for gene expression differences while preserving batch effects. Unlike the unscaled plot, the outliers have been removed, reducing noise and making the overall structure clearer. However, the experiment type still does not significantly drive separation, meaning the differences between A and B are subtle compared to the influence of replicates.
@@ -517,6 +529,7 @@ grid.arrange(
   top = "tSNE Perplexity"
 )
 
+
 ```
 
 
@@ -566,6 +579,7 @@ grid.arrange(
   widths = c(10, 1),
   top="tSNE Iterations"
 )
+
 ```
 
 Since the number of iterations controls how long the algorithm refines the embedding, running fewer iterations can result in an underdeveloped structure, while more iterations allow the algorithm to better separate and position the points.
@@ -599,6 +613,8 @@ umap_raw_plot <- umap(data)
 
 plot_umap(umap_raw_plot, metadata)+
   labs(title = "UMAP Raw data plot")
+
+
 ```
 
 # Normalized data UMAP plot
@@ -607,6 +623,7 @@ umap_normalized_plot <- umap(normalized_data)
 
 plot_umap(umap_normalized_plot, metadata)+
   labs(title = "UMAP Normalized data plot")
+
 ```
 
 # Predict the UMAP
@@ -621,6 +638,8 @@ umap_train <- umap(umap_rep4_data)
 
 plot_umap(umap_train, metadata_train)+
   labs(title = "UMAP data Replicates 1-3")
+
+
 ```
 
 
@@ -639,6 +658,8 @@ ggplot(rep4_data, aes(x = Dim1, y = Dim2, shape = Type, color = Time))+
   scale_color_brewer(palette = "Set1")+
   labs(title = "Prediction for Replicate 4")+
   theme_minimal()
+
+
 ```
 # Parameter exploration: n_neighbors
 ```{r warning=FALSE}
@@ -749,6 +770,7 @@ grid.arrange(
   widths = c(10, 1),
   top="UMAP Number of iterations"
 )
+
 ```
 
 
@@ -802,6 +824,8 @@ ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, shape = metadata$replicate,
   labs(title = "Final tSNE representation with accurate data", 
        x = "Dim1", y = "Dim2", shape = "Replicate", size = "Type", color = "Time") +
   theme_minimal()
+
+
 ```
 
 
@@ -815,6 +839,7 @@ final_umap <- umap(normalized_data, n_epochs = 500, min_dist = 0.3, n_neighbors 
 
 plot_umap(final_umap, metadata)+
   labs(title = "Final UMAP representation with accurate data")
+
 ```
 
 
