@@ -410,8 +410,7 @@ ggplot(scaled_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = Type,
 
 ```
 
-### REVISAR EXPLICACIÓ
-In this plot the samples are now clearly grouped by replicate, with overlapping, and also the Type separation has diminished in comparasion to the unscaled plot.
+In this plot the samples are now clearly grouped by replicate, with overlapping, and also the Type separation has diminished in comparasion to the unscaled plot. This variates from what we saw at the PCA, where there was a clear distance between groups
 
 
 # Normalized tSNE plot
@@ -429,9 +428,7 @@ ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = T
   theme_minimal()
 
 ```
-### REVISAR EXPLICACIÓ
-In the normalized tSNE plot, the samples continue to cluster based on replicate, similar to the scaled version. Each replicate forms a distinct group, indicating that normalization has helped adjust for gene expression differences while preserving batch effects. Unlike the unscaled plot, the outliers have been removed, reducing noise and making the overall structure clearer. However, the experiment type still does not significantly drive separation, meaning the differences between A and B are subtle compared to the influence of replicates.
-
+In the normalized tSNE plot, there is a shift, the distance between replicates becomes the biggest change. Now we can see groups are made by the samples shearing time and type, leaving groups with one of each possible replicate
 
 # tSNE parameters
 
@@ -440,11 +437,9 @@ We'll only use the normalized dataset
 # Reproducibility
 
 ```{r reproducibility}
-set.seed(123)
 
 plot_reproducibility <- function(normalized_data, metadata){
   
-  set.seed(123)
   maximum_perplexity <- (nrow(normalized_data) - 1) / 3
   data <- Rtsne(normalized_data, perplexity = maximum_perplexity / 2)
   
@@ -482,7 +477,7 @@ grid.arrange(
 
 ```
 
-To make these plots we need the set.seed() command since if we don't establish a seed we'd get different results each time. Not only that, but also we'd get different results for each plot each time meaning we'd get 4 different plots each time, not 4 of the same and with each execution it'd change. 
+Since tSNE is non deterministic, if we don't set a seed each repetition gives a different graph 
 
 
 # Perplexity
@@ -533,7 +528,7 @@ grid.arrange(
 ```
 
 
-Low perplexity values will make clusters too tight/defined. When raising the perplexity value, these clusters reorganize themselves into less number of clusters with more samples in each cluster. In the maximum perplexity value we see the extreme case which is 2 clusters really far apart from each other. The ideal value would be half of this maximum perplexity value. 
+Low perplexity values will make clusters too tight/defined. When raising the perplexity value, these clusters reorganize themselves into less number of clusters with more samples in each cluster. In the maximum perplexity value we see the extreme case which is 2 clusters really far apart from each other. 
 
 
 
@@ -558,7 +553,7 @@ plot_iterations<-function(normalized_data, metadata, num_iterations){
   return(tsne_plots)
 }
 
-iterations<-c(2, 100, 2000, 10000)
+iterations<-c(50, 600, 1000, 10000)
 
 iterations_plots <- list()
 
@@ -584,7 +579,7 @@ grid.arrange(
 
 Since the number of iterations controls how long the algorithm refines the embedding, running fewer iterations can result in an underdeveloped structure, while more iterations allow the algorithm to better separate and position the points.
 
-This can clearly be seen at iteration 2, since there is almost no visible clustering whereas in iteration 10000, the clusters are highly distinct (even overly refined) The intermediate iterations show a progressive improvement, with increasingly well-defined clusters.
+This can clearly be seen at iteration 2, since there is almost no visible clustering whereas in iteration 10000, the clusters are highly distinct (even overly refined) on the type. The intermediate iterations show a progressive improvement, with increasingly well-defined clusters.
 
 
 
@@ -616,7 +611,7 @@ plot_umap(umap_raw_plot, metadata)+
 
 
 ```
-
+Once again we see the groups by replica and type while time has low to no effect
 # Normalized data UMAP plot
 ```{r}
 umap_normalized_plot <- umap(normalized_data)
@@ -625,7 +620,7 @@ plot_umap(umap_normalized_plot, metadata)+
   labs(title = "UMAP Normalized data plot")
 
 ```
-
+Once normalized in UMAP we see a different shift
 # Predict the UMAP
 ```{r}
 umap_training <- metadata$replicate %in% c("1", "2", "3")
