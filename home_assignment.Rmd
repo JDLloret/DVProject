@@ -606,7 +606,7 @@ At 600 iterations can clearly see the expected clusters (By type and time) where
 
 
 # UMAP Representation
-
+UMAP is faster than tSNE and preserves the global structure better
 # UMAP plots
 ```{r}
 plot_umap <- function(data, metadata){
@@ -632,7 +632,9 @@ plot_umap(umap_raw_plot, metadata)+
 
 
 ```
-Once again we see the groups by replica and type while time has low to no effect
+As with PCA and tSNE unscaled we see that there are clusters made by Type and replicate. 
+But as we can see there is a huge distance with one particular cluster that seems to condition the data (replicate 4 type B). We will normalize the data to correct this possible issue.
+
 # Normalized data UMAP plot
 ```{r}
 umap_normalized_plot <- umap(normalized_data)
@@ -641,7 +643,7 @@ plot_umap(umap_normalized_plot, metadata)+
   labs(title = "UMAP Normalized data plot")
 
 ```
-Once normalized in UMAP we see a different shift
+Once normalized in UMAP we see a clear shift. Like PCA and tSNE the Type represents the biggest distance between samples and closely grouped by time. But still we see a distance between replicates 4 and the rest of the group we expected
 # Predict the UMAP
 ```{r}
 umap_training <- metadata$replicate %in% c("1", "2", "3")
@@ -657,7 +659,7 @@ plot_umap(umap_train, metadata_train)+
 
 
 ```
-
+If we look at the data without the fourth replicate we can see that the distance within time  clusters is reduced significantly.
 
 
 ```{r}
@@ -677,6 +679,7 @@ ggplot(rep4_data, aes(x = Dim1, y = Dim2, shape = Type, color = Time))+
 
 
 ```
+And by showing only replicate 4 we clearly see the issue being Type B time 3, greatly distanced from the rest. We'll have to work around it.
 # Parameter exploration: n_neighbors
 ```{r warning=FALSE}
 neighbor_plotter <- function(data, metadata, num){
@@ -710,7 +713,12 @@ grid.arrange(
   top="UMAP Neighbors"
 )
 ```
+Here we can see the effect of changing neighbour values in UMAP. 
 
+At two we see a lot of clusters but cant get a relationship between them. This is because a low values it focuses on showing clear and several clusters, over-splitting them and not allowing to get the information we aim for.
+At twelve we see that there is still distance between two clusters of type B we don't expect.
+
+And finally after twenty two there are two clusters determined by type. Since here the aim is for two clusters to be the main result and explanation it seems to be no problem, but if we over increased the neighbours we would miss relevant information within clusters.
 
 # Parameter exploration: min_dist
 ```{r warning=FALSE}
@@ -750,7 +758,9 @@ grid.arrange(
 
 
 ```
+Here we see the effect of minimum distance, which determines the minimum distance allowed between samples in the UMAP.
 
+This aims to determine the focus of the plot, where low distance shows more differences within groups (We see until Md 0.5 individuality of times 1 and 2 of Type A that are lost with a higher distance), but at higher value we see more the distance between Types, while losing time distinctions. 
 
 
 # Parameter exploration: n_epochs
@@ -767,7 +777,7 @@ epoch_plotter <- function(data, metadata, epoch){
 
 epoch_list <- list()
 
-epoch_values <- c(100, 500, 1000, 2000)
+epoch_values <- c(100, 500, 1000, 10000)
 
 for (i in seq_along(epoch_values)){
   num <- epoch_values[i]
@@ -788,7 +798,7 @@ grid.arrange(
 )
 
 ```
-
+We see that the change of UMAP by changing the iterations is not nearly as impactfull as in tSNE, but still at higher values we start having too much overlapping
 
 
 # Final interpretation
@@ -822,7 +832,7 @@ final_pca1 + final_pca2 + plot_annotation(title = "Final PCA representation with
 ```
 
 
-We observe that our data has been grouped into two clusters, which are classified by the type of experiment (not the replicate where they come from) and this means that the variance that is seen between PC1 and PC2 has to be explained by biological factors. Since the groups are clearly separated, we can confirm that the batch effect has been eliminated. 
+We observe that our data has been grouped into two clusters, which are classified by the type of experiment (not the replicate where they come from) and this means that the variance that is seen between PC1 and PC2 has to be explained by biological factors. Since the groups are clearly separated, we can confirm that the batch effect has been eliminated.
 
 # Final tSNE representation
 
@@ -844,8 +854,6 @@ ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, shape = metadata$replicate,
 
 ```
 
-
-
 The t-SNE plot shows how samples group based on how similar they are, and it helps support what we saw with the PCA. In our plot, the samples are grouped more by their experimental type (A/B) than what replicate they came from. This suggests that the differences in the data are due to real biological effects, not technical issues like batch effects. This supports the PCA representation since both PCA and tSNE are clustered the same way.
 
 
@@ -857,9 +865,17 @@ plot_umap(final_umap, metadata)+
   labs(title = "Final UMAP representation with accurate data")
 
 ```
-
+Here, UMAP shows the distance between type even stronger than the others. confirming that the main difference is caused by the type of yeast.
 
 # Final interpretation
 
-### CANVIAR EXPLICACIÓ
-PCA and tSNE both help understand the main differences in our data. PCA showed clear clusters in the first two components, and tSNE showed a similar pattern in its two main dimensions. Looking back at the results, the fact that both methods show the same clear grouping gives us more confidence in what we're seeing. Since the clusters match the experiment type rather than the replicate where it comes from, we can say that the variation is likely caused by biology, not technical errors.
+PCA, tSNE and UMAP all bring us to the same conclusion: The type of yeast is by a large margin the main factor that differentiates the wines.
+
+PCA showed clear clusters in both type and time, with Type being still significantly stronger.
+
+tSNE showed a similar pattern, especially after adjusting the settings for the plot to be optimal. The distance between types in tSNE seems to be the smallest, while showcasing more the effects timestamps cause to the samples.
+
+On the other hand UMAP showcases the distance between Types in an even more exaggerated way, but also loses time distinctions.
+
+In conclusion, all methods brought us to the same result: The genetic differences in the yeast cause the main difference in taste of the wines. Still we were able to make different observations with each method, showcasing that using multiple method to contrast the data is useful.
+
