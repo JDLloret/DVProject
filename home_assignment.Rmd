@@ -98,9 +98,13 @@ data <- rbind(rep1, rep2, rep3, rep4)
 
 
 # QUESTION 2: PCA representation
+PCA is a linear method, that aims to preserve the global structure of the data, it's sensitive to magnitude and returns always the same result for the same data (is deterministic)
+
 There are three types of PCA representations:
 Unscaled, Scaled and Normalized. The unscaled representation uses raw data and can lead to an uneven representation since it can emphasize genes with higher overall expression.
+
 The scaled representation scales and centers the data and highlights changes across conditions.
+
 The normalized representation adjusts for the total expression. This means that each sample has a similar total expression level. This representation is used when we compare samples where the total expression might vary a lot. 
 ```{r}
 set.seed(123)
@@ -149,7 +153,11 @@ pca1_unscaled + pca2_unscaled + pca3_unscaled +plot_annotation("Unscaled plots")
 
 ```
 
-Here we can see first the A/B experiment differences, where they have opposite growths in relation to Dim2. Along to all groups remaining in separate clusters. Not giving any relevant information more that we know they are different. Adding these ellipses helps us see if the data is clustered based on the replicate or the experiment, which could show a possible batch effect.
+Here we can see first the A/B experiment differences, where they have opposite growths in relation to Dim2, therefore we expect them to be the main difference within the data. 
+After we observe  all the replicates in separate clusters, with exception of group 3 (this may be caused by an outlier mentioned in the data information).
+Finally the time variable doesn't show any clear difference between time stamps, showing that its impact will be minimal.
+These ellipses helps us see if the data is clustered based on the replicate or the experiment, which could show a possible batch effects.
+
 
 # Plot full unscaled PCA with ggplot
 
@@ -174,7 +182,7 @@ scale_color_brewer(palette = "Set1")+
 
 ```
 
-This plot reinforces the previous statement, showing how the samples group by replicates and experiment but the group times are separated. There is nothing more relevant except for the fact that each point represents a sample and it can be seen more clearly the clusters grouped by both replicate and type of experiment. The red circle is an exception that we will come back later on.
+This plot reinforces the previous statement, showing how the samples group by experiment (PC2) and replicates (PC1) but the group times are separated, expressing their small effect over the samples. The red crossed circle is an outlier that we will come back later on.
 
 
 # Scaled PCA plot
@@ -204,7 +212,8 @@ pca1_scaled + pca2_scaled+ pca3_scaled + plot_annotation("Scaled plots")
 
 ```
 
-Once scaled we still remain in a similar situation but with a small change, the group 3 cluster has grown covering inside groups 1 and 2, but still with a low relevant information to extract. Therefore the scaling has adapted a bit to take into account big value discrepancies, but the data still needs to be adapted.
+Once scaled we still remain in a similar situation this is not unusual for a PCA, where scaling may not cause differences, still scaling is an essential step to ensure the results are correct. 
+In this case the scaling has adapted a bit to take into account big value discrepancies, but the data still needs to be normalized.
 
 # Plot full scaled PCA plot with ggplot
 
@@ -227,8 +236,8 @@ ggplot(pca_scaled$x,
   theme_minimal()
 
 ```
-### CANVIAR EXPLICACIÓ
-Here we can see that it stays mostly the same as before. Using this type of data reduces the samples with high variance, and allows us to focus more on the differences in proportion. With scaling there isn't as much batch effect, or at least it is more subtle when looking for differences between samples. 
+Here we can see that it stays mostly the same as before. Using this type of data reduces the samples with high variance, and allows us to focus more on the differences in proportion. 
+With scaling there isn't as much batch effect, or at least it is more subtle when looking for differences between samples. 
 
 # Normalized PCA plot
 
@@ -256,7 +265,7 @@ pca1_normalized + pca2_normalized+ pca3_normalized + plot_annotation("Normalized
 
 ```
 
-After normalizing we now see bigger changes, but they seem to be caused due to the group B and 3 time 1 outlier that makes the whole plot shift, therefore we will have to address this outlier the data providers mentioned.
+After normalizing we now see bigger changes, but they seem to be caused due to the group B and 3 time 1 outlier we saw before that makes the whole plot shift, therefore we will have to address it.
 
 
 # Plot full normalized PCA with ggplot
@@ -279,8 +288,7 @@ ggplot(pca_normalized$x,
 
 
 ```
-### REVISAR EXPLICACIÓ
-Here we see how extremely this outlier conditions our data, leaving only the groups as a visible difference.
+Here we see how extremely this outlier conditions our data, leaving only the groups as a visible difference while it stays greatly distantiated.
 
 # Outliers
 
@@ -334,10 +342,21 @@ ggplot(pca_normalized$x,
 
 
 ```
-Now we can more clearly see how the data is distributed, the replicates remain in groups, time shows the most variance, and we can see how it behaves differently at each type behaves differently over time. This would explain the discrepancies in taste of the wines.
+Now we can more clearly see how the data is distributed, the replicates remain in groups.
+Type shows the most variance (As seen with the distance between type in the X axis).
+After we can see how time resulted more relevant than expected since the clusters are of replicate and time is what creates discrepancies in the Y axis. 
 
+Still with the results above we could determine that the type of yeast is the main responsible for the taste differences, followed by the time of fermentation.
 
 # tSNE representation
+
+t-SNE is a non-linear method that aims to preserve the local structure of the data. It is sensitive to input scaling and randomness, meaning it can return slightly different results unless a random seed is fixed (it is non-deterministic).
+
+Unscaled, as PCA simply works with the raw data.
+On the other hand scaling is always essential in tSNE as well as taking into account the iterations and perplaxity.
+
+Finally, normalizing aims to remove potential bias in the data.
+
 ```{r}
 maximum_perplexity <- (nrow(normalized_data) - 1) / 3 
 
@@ -391,8 +410,8 @@ ggplot(unscaled_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = Typ
 
 
 ```
-### CANVIAR EXPLICACIÓ
-This plot shows that the samples cluster based on replicate and type, making time the discrepancy within groups. There isn’t a clear separation between experiment types (A or B), since those who share replicate are still fairly near.
+
+This plot shows that the samples cluster based on replicate and type, making time the discrepancy within clusters. There isn’t a clear separation between experiment types (A or B), since those who share replicate are still fairly near.
 
 # Scaled tSNE plot
 
@@ -410,7 +429,7 @@ ggplot(scaled_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = Type,
 
 ```
 
-In this plot the samples are now clearly grouped by replicate, with overlapping, and also the Type separation has diminished in comparasion to the unscaled plot. This variates from what we saw at the PCA, where there was a clear distance between groups
+Once scaled we see the samples clearly grouped by replicate, with overlapping, and also the wine type separation has diminished in comparasion to the unscaled plot. This variates from what we saw at the PCA, where there was a clear distance between groups
 
 
 # Normalized tSNE plot
@@ -428,11 +447,12 @@ ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = T
   theme_minimal()
 
 ```
-In the normalized tSNE plot, there is a shift, the distance between replicates becomes the biggest change. Now we can see groups are made by the samples shearing time and type, leaving groups with one of each possible replicate
+In the normalized tSNE plot, there is a shift, the distance between replicates becomes the biggest change. Now we can see clusters formed by samples that sheare time and type, leaving groups with one of each possible replicate. 
+This is due to normalization removing the sample bias.
 
 # tSNE parameters
 
-We'll only use the normalized dataset
+We'll use the normalized dataset
 
 # Reproducibility
 
@@ -447,7 +467,7 @@ plot_reproducibility <- function(normalized_data, metadata){
     geom_point()+  scale_shape_manual(values = c(1, 5, 10, 15))+
   scale_size_manual( values = c(3, 5))+
   scale_color_brewer(palette = "Set1")+
-    labs(x="tSNE 1", y="tSNE 2", shape="Replicate", size = "Experiment Label", color = "Time")+
+    labs(x="tSNE 1", y="tSNE 2", shape="Replicate", size = "Type", color = "Time")+
     theme_minimal()
   
   return(tsne_plots)
@@ -477,7 +497,7 @@ grid.arrange(
 
 ```
 
-Since tSNE is non deterministic, if we don't set a seed each repetition gives a different graph 
+Since tSNE is non deterministic, if we don't set a seed each repetition gives a different graph, but as we can see the clusters are consistenly composed of one of each replicate, with two distant and bigger groups being the type
 
 
 # Perplexity
@@ -528,7 +548,9 @@ grid.arrange(
 ```
 
 
-Low perplexity values will make clusters too tight/defined. When raising the perplexity value, these clusters reorganize themselves into less number of clusters with more samples in each cluster. In the maximum perplexity value we see the extreme case which is 2 clusters really far apart from each other. 
+Low perplexity values will make clusters too tight/defined. When raising the perplexity value, these clusters reorganize themselves into less number of clusters with more samples in each cluster. In the maximum perplexity value we see the extreme case which is 2 clusters really far apart from each other.
+
+We determined that the optimal perplexity value is arround 5
 
 
 
@@ -577,9 +599,8 @@ grid.arrange(
 
 ```
 
-Since the number of iterations controls how long the algorithm refines the embedding, running fewer iterations can result in an underdeveloped structure, while more iterations allow the algorithm to better separate and position the points.
-
-This can clearly be seen at iteration 2, since there is almost no visible clustering whereas in iteration 10000, the clusters are highly distinct (even overly refined) on the type. The intermediate iterations show a progressive improvement, with increasingly well-defined clusters.
+Since the number of iterations controls how long the algorithm refines the embedding, running fewer iterations can result in an underdeveloped structure(as shown at 50 iterations where the samples show no tendency nor clusters), while more iterations allow the algorithm to better separate and position the points. 
+At 600 iterations can clearly see the expected clusters (By type and time) whereas in iterations 1000 and 10000, the clusters are too highly distinct on the type and don't show all the information available. 
 
 
 
