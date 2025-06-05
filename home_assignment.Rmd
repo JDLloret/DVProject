@@ -1,7 +1,7 @@
 ---
 title: "Home Assignment: Exploratory analysis and visualization"
 output: html_document
-date: "2025-05-15"
+date: "2025-06-05"
 author: "Joan Lloret and Martí Díez"
 ---
 
@@ -236,6 +236,7 @@ ggplot(pca_scaled$x,
   theme_minimal()
 
 ```
+
 Here we can see that it stays mostly the same as before. Using this type of data reduces the samples with high variance, and allows us to focus more on the differences in proportion. 
 With scaling there isn't as much batch effect, or at least it is more subtle when looking for differences between samples. 
 
@@ -288,6 +289,7 @@ ggplot(pca_normalized$x,
 
 
 ```
+
 Here we see how extremely this outlier conditions our data, leaving only the groups as a visible difference while it stays greatly distantiated.
 
 # Outliers
@@ -342,6 +344,7 @@ ggplot(pca_normalized$x,
 
 
 ```
+
 Now we can more clearly see how the data is distributed, the replicates remain in groups.
 Type shows the most variance (As seen with the distance between type in the X axis).
 After we can see how time resulted more relevant than expected since the clusters are of replicate and time is what creates discrepancies in the Y axis. 
@@ -350,7 +353,7 @@ Still with the results above we could determine that the type of yeast is the ma
 
 # tSNE representation
 
-t-SNE is a non-linear method that aims to preserve the local structure of the data. It is sensitive to input scaling and randomness, meaning it can return slightly different results unless a random seed is fixed (it is non-deterministic).
+tSNE is a non-linear method that aims to preserve the local structure of the data. It is sensitive to input scaling and randomness, meaning it can return slightly different results unless a random seed is fixed (it is non-deterministic).
 
 Unscaled, as PCA simply works with the raw data.
 On the other hand scaling is always essential in tSNE as well as taking into account the iterations and perplaxity.
@@ -447,6 +450,7 @@ ggplot(normalized_tsne_data, aes(x = Dim1, y = Dim2, shape = Replicate, size = T
   theme_minimal()
 
 ```
+
 In the normalized tSNE plot, there is a shift, the distance between replicates becomes the biggest change. Now we can see clusters formed by samples that sheare time and type, leaving groups with one of each possible replicate. 
 This is due to normalization removing the sample bias.
 
@@ -516,7 +520,8 @@ PerplexityPlotter <- function(normalized_data, metadata, pr){
     scale_shape_manual(values = c(1, 5, 10, 15))+
   scale_size_manual( values = c(3, 5))+
   scale_color_brewer(palette = "Set1")+
-    labs(x = "tSNE 1", y = "tSNE 2", shape = "Replicate", size = "Type", color = "Time", title=paste0("tSNE plot for perplexity=", round(pr, 2)))
+    labs(x = "tSNE 1", y = "tSNE 2", shape = "Replicate", size = "Type", color = "Time", title=paste0("tSNE plot for perplexity=", round(pr, 2)))+
+    theme_minimal()
   return(tsne_plots)
 }
 
@@ -547,10 +552,9 @@ grid.arrange(
 
 ```
 
-
 Low perplexity values will make clusters too tight/defined. When raising the perplexity value, these clusters reorganize themselves into less number of clusters with more samples in each cluster. In the maximum perplexity value we see the extreme case which is 2 clusters really far apart from each other.
 
-We determined that the optimal perplexity value is arround 5
+We determined that the optimal perplexity value is around 5
 
 
 
@@ -571,7 +575,8 @@ plot_iterations<-function(normalized_data, metadata, num_iterations){
   scale_size_manual( values = c(3, 5))+
   scale_color_brewer(palette = "Set1")+
     labs(x="tSNE 1", y="tSNE 2", shape = "Replicate", size = "Type", color = "Time",
-         title=paste0(num_iterations, " iterations tSNE plot"))
+         title=paste0(num_iterations, " iterations tSNE plot"))+
+    theme_minimal()
   return(tsne_plots)
 }
 
@@ -607,6 +612,7 @@ At 600 iterations can clearly see the expected clusters (By type and time) where
 
 # UMAP Representation
 UMAP is faster than tSNE and preserves the global structure better
+
 # UMAP plots
 ```{r}
 plot_umap <- function(data, metadata){
@@ -632,6 +638,7 @@ plot_umap(umap_raw_plot, metadata)+
 
 
 ```
+
 As with PCA and tSNE unscaled we see that there are clusters made by Type and replicate. 
 But as we can see there is a huge distance with one particular cluster that seems to condition the data (replicate 4 type B). We will normalize the data to correct this possible issue.
 
@@ -643,7 +650,9 @@ plot_umap(umap_normalized_plot, metadata)+
   labs(title = "UMAP Normalized data plot")
 
 ```
+
 Once normalized in UMAP we see a clear shift. Like PCA and tSNE the Type represents the biggest distance between samples and closely grouped by time. But still we see a distance between replicates 4 and the rest of the group we expected
+
 # Predict the UMAP
 ```{r}
 umap_training <- metadata$replicate %in% c("1", "2", "3")
@@ -659,7 +668,8 @@ plot_umap(umap_train, metadata_train)+
 
 
 ```
-If we look at the data without the fourth replicate we can see that the distance within time  clusters is reduced significantly.
+
+If we look at the data without the fourth replicate we can see that the distance within time clusters is reduced significantly.
 
 
 ```{r}
@@ -679,14 +689,17 @@ ggplot(rep4_data, aes(x = Dim1, y = Dim2, shape = Type, color = Time))+
 
 
 ```
+
 And by showing only replicate 4 we clearly see the issue being Type B time 3, greatly distanced from the rest. We'll have to work around it.
+
 # Parameter exploration: n_neighbors
 ```{r warning=FALSE}
 neighbor_plotter <- function(data, metadata, num){
   n_neigh_umap <- umap(data, n_neighbors = num)
   umap_plot <- plot_umap(n_neigh_umap, metadata)
   umap_plot <- umap_plot+
-    labs(title=paste0("Neighbors: ", num))
+    labs(title=paste0("Neighbors: ", num))+
+    theme_minimal()
   
   return(umap_plot)
 }
@@ -713,6 +726,7 @@ grid.arrange(
   top="UMAP Neighbors"
 )
 ```
+
 Here we can see the effect of changing neighbour values in UMAP. 
 
 At two we see a lot of clusters but cant get a relationship between them. This is because a low values it focuses on showing clear and several clusters, over-splitting them and not allowing to get the information we aim for.
@@ -728,7 +742,8 @@ min_dist_plotter <- function(data, metadata, dist_value){
   min_dist_umap <- umap(data, min_dist = dist_value)
   umap_plot <- plot_umap(min_dist_umap, metadata)
   umap_plot <- umap_plot+
-    labs(title=paste0("Minimum distance: ", dist_value))
+    labs(title=paste0("Minimum distance: ", dist_value))+
+    theme_minimal()
   
   return(umap_plot)
   
@@ -758,10 +773,10 @@ grid.arrange(
 
 
 ```
+
 Here we see the effect of minimum distance, which determines the minimum distance allowed between samples in the UMAP.
 
 This aims to determine the focus of the plot, where low distance shows more differences within groups (We see until Md 0.5 individuality of times 1 and 2 of Type A that are lost with a higher distance), but at higher value we see more the distance between Types, while losing time distinctions. 
-
 
 # Parameter exploration: n_epochs
 ```{r}
@@ -769,7 +784,8 @@ epoch_plotter <- function(data, metadata, epoch){
   epoch_umap <- umap(data, n_epochs = epoch)
   umap_plot <- plot_umap(epoch_umap, metadata)
   umap_plot <- umap_plot+
-    labs(title=paste0("Number of iterations: ", epoch))
+    labs(title=paste0("Number of iterations: ", epoch))+
+    theme_minimal()
   
   return(umap_plot)
 }
@@ -798,13 +814,13 @@ grid.arrange(
 )
 
 ```
+
 We see that the change of UMAP by changing the iterations is not nearly as impactfull as in tSNE, but still at higher values we start having too much overlapping
 
 
 # Final interpretation
 
 We'll use the normalized data with outliers removed since it is the one that represents our data most accurately
-
 
 # Final PCA
 ```{r final_pca}
@@ -831,11 +847,9 @@ final_pca1 + final_pca2 + plot_annotation(title = "Final PCA representation with
 
 ```
 
-
 We observe that our data has been grouped into two clusters, which are classified by the type of experiment (not the replicate where they come from) and this means that the variance that is seen between PC1 and PC2 has to be explained by biological factors. Since the groups are clearly separated, we can confirm that the batch effect has been eliminated.
 
 # Final tSNE representation
-
 
 ```{r}
 set.seed(123)
@@ -865,6 +879,7 @@ plot_umap(final_umap, metadata)+
   labs(title = "Final UMAP representation with accurate data")
 
 ```
+
 Here, UMAP shows the distance between type even stronger than the others. confirming that the main difference is caused by the type of yeast.
 
 # Final interpretation
